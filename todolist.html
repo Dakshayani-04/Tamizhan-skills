@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart To-Do List</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s;
+    }
+    body.dark {
+      background: #121212;
+      color: #fff;
+    }
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    body.dark .container {
+      background: #1e1e1e;
+    }
+    h1 {
+      text-align: center;
+    }
+    .input-section {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input, select {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #f0f0f0;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    body.dark li {
+      background: #2c2c2c;
+    }
+    li.completed {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+    .filters, .toggle-mode {
+      text-align: center;
+      margin: 15px 0;
+    }
+    .actions button {
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📝 Smart To-Do List</h1>
+    <div class="input-section">
+      <input type="text" id="taskInput" placeholder="Add a new task...">
+      <input type="date" id="dueDate">
+      <select id="category">
+        <option value="General">General</option>
+        <option value="Work">Work</option>
+        <option value="Personal">Personal</option>
+      </select>
+      <button onclick="addTask()">Add</button>
+    </div>
+    <ul id="taskList"></ul>
+    <div class="filters">
+      <button onclick="filterTasks('all')">All</button>
+      <button onclick="filterTasks('completed')">Completed</button>
+      <button onclick="filterTasks('pending')">Pending</button>
+    </div>
+    <div class="toggle-mode">
+      <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+    </div>
+  </div>
+  <!-- Footer -->
+<footer style="background:#111; color:#fff; text-align:center; padding:20px 0; margin-top:40px;">
+  <div style="margin-bottom:10px;">
+    <a href="#" style="margin:0 10px; color:#fff; font-size:1.3rem;"><i class="fab fa-linkedin"></i></a>
+    <a href="#" style="margin:0 10px; color:#fff; font-size:1.3rem;"><i class="fab fa-github"></i></a>
+    <a href="#" style="margin:0 10px; color:#fff; font-size:1.3rem;"><i class="fab fa-twitter"></i></a>
+    <a href="#" style="margin:0 10px; color:#fff; font-size:1.3rem;"><i class="fab fa-instagram"></i></a>
+  </div>
+  <p style="font-size:0.9rem;">&copy; 2025 Smart To-Do List. All rights reserved.</p>
+</footer>
+
+<!-- Font Awesome Script -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+    function renderTasks(filter = 'all') {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      const filtered = tasks.filter(t => filter === 'all' || (filter === 'completed' ? t.completed : !t.completed));
+      filtered.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.className = t.completed ? 'completed' : '';
+        li.innerHTML = `
+          <span onclick="toggleComplete(${i})">${t.text} (${t.category}, due: ${t.date || 'N/A'})</span>
+          <div class="actions">
+            <button onclick="editTask(${i})">✏</button>
+            <button onclick="deleteTask(${i})">🗑</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+      saveTasks();
+    }
+    function addTask() {
+      const text = document.getElementById('taskInput').value.trim();
+      const date = document.getElementById('dueDate').value;
+      const category = document.getElementById('category').value;
+      if (!text) return alert('Please enter a task.');
+      tasks.push({ text, date, category, completed: false });
+      document.getElementById('taskInput').value = '';
+      document.getElementById('dueDate').value = '';
+      renderTasks();
+    }
+    function toggleComplete(index) {
+      tasks[index].completed = !tasks[index].completed;
+      renderTasks();
+    }
+    function deleteTask(index) {
+      if (confirm('Delete this task?')) {
+        tasks.splice(index, 1);
+        renderTasks();
+      }
+    }
+    function editTask(index) {
+      const newText = prompt('Edit task:', tasks[index].text);
+      if (newText) {
+        tasks[index].text = newText;
+        renderTasks();
+      }
+    }
+    function filterTasks(f) {
+      renderTasks(f);
+    }
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+    // Check reminders every 10 seconds
+    setInterval(() => {
+      const now = new Date().toISOString().slice(0, 10);
+      tasks.forEach((t, i) => {
+        if (t.date === now && !t.notified) {
+        alert(`Reminder: ${t.text} is due today!`);
+          t.notified = true;
+        }
+      });
+      saveTasks();
+    }, 10000);
+    renderTasks();
+  </script>
+</body>
+</html>
