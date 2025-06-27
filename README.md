@@ -12,3 +12,10 @@ A clean, lightweight, and responsive To-Do List web application with support for
 💾 Tasks saved in browser (via localStorage)
 📱 Responsive & mobile-friendly UI
 📎 Footer with social media links
+## 🛠 Technologies Used
+
+- *HTML5*
+- *CSS3*
+- *JavaScript (Vanilla)*
+- *Font Awesome* (for social icons)
+- *Responsive Design* with media queries
